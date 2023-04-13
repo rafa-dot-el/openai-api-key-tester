@@ -1,0 +1,30 @@
+#+Title: OpenAI API Key Tester
+
+A quick and simple OpenAI API Key tester, the keys should be written on the
+ =stdin= and it will write to the =stdout= the status of each key.
+
+* Build
+It uses standard =Golang= tooling, to build just run
+#+begin_src bash
+go build main.go
+#+end_src
+* Run
+#+begin_example
+# cat keys | sort | uniq | ./main | tee result
+[*] Checking API key: sk-ABC
+[-] Invalid API key: sk-ABC
+[*] Checking API key: sk-XYZ
+[+] Valid API key: sk-XYZ
+[*] Summary: 1 valid keys, 1 invalid keys
+#+end_example
+
+* Disclaimer
+
+This or previous program is for Educational purpose ONLY. Do not use it without
+permission. The usual disclaimer applies, especially the fact that me (Rafa-dot-el)
+is not liable for any damages caused by direct or indirect use of the
+information or functionality provided by these programs. The author or any
+Internet provider bears NO responsibility for content or misuse of these
+programs or any derivatives thereof. By using these programs you accept the fact
+that any damage (dataloss, system crash, system compromise, etc.) caused by the
+use of these programs is not Rafa-dot-el's responsibility.
