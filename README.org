@@ -18,6 +18,21 @@ go build main.go
 [*] Summary: 1 valid keys, 1 invalid keys
 #+end_example
 
+* Developing
+This project uses =nix= and =direnv=, just
+
+#+begin_src bash
+direnv allow
+#+end_src
+
+and
+
+#+begin_src bash
+nix develop
+#+end_src
+
+Are enough to give you a development environment.
+
 * Disclaimer
 
 This or previous program is for Educational purpose ONLY. Do not use it without
