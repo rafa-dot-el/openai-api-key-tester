@@ -134,7 +134,7 @@ jobs:
 
           A command-line utility that validates OpenAI API keys by making requests to the OpenAI API.
 
-          ### 🐳 Docker Images
+          ### Docker Images
 
           ```bash
           # Latest release
@@ -144,11 +144,11 @@ jobs:
           docker run --rm -i rafadotel/openai-api-key-tester:latest
           ```
 
-          ### 📦 Binary Downloads
+          ### Binary Downloads
 
           Download the appropriate binary for your platform below. All binaries are statically compiled and require no dependencies.
 
-          ### 🚀 Usage
+          ### Usage
 
           ```bash
           # Test single key
@@ -158,7 +158,7 @@ jobs:
           cat keys.txt | ./openai-api-key-tester
           ```
 
-          ### ⚠️ Disclaimer
+          ### Disclaimer
 
           This tool is intended solely for educational and authorized security testing purposes. Users are responsible for compliance with all applicable laws and regulations.
 
