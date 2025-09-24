@@ -1,10 +1,9 @@
 #+Title: OpenAI API Key Tester
 
-A quick and simple OpenAI API Key tester, the keys should be written on the
- =stdin= and it will write to the =stdout= the status of each key.
+A command-line utility that validates OpenAI API keys by making requests to the OpenAI API. The program reads API keys from standard input and reports their validity status to standard output.
 
 * Build
-It uses standard =Golang= tooling, to build just run
+Standard Go build process:
 #+begin_src bash
 go build main.go
 #+end_src
@@ -18,28 +17,30 @@ go build main.go
 [*] Summary: 1 valid keys, 1 invalid keys
 #+end_example
 
-* Developing
-This project uses =nix= and =direnv=, just
+* Development
+This project uses Nix flakes with direnv for environment management:
 
 #+begin_src bash
 direnv allow
 #+end_src
 
-and
+Or manually:
 
 #+begin_src bash
 nix develop
 #+end_src
 
-Are enough to give you a development environment.
+* Container Usage
+#+begin_src bash
+# Test a single key
+echo "sk-your-key-here" | docker run --rm -i rafadotel/openai-api-key-tester
+
+# Test multiple keys from file
+cat keys.txt | docker run --rm -i rafadotel/openai-api-key-tester
+#+end_src
 
 * Disclaimer
 
-This or previous program is for Educational purpose ONLY. Do not use it without
-permission. The usual disclaimer applies, especially the fact that me (Rafa-dot-el)
-is not liable for any damages caused by direct or indirect use of the
-information or functionality provided by these programs. The author or any
-Internet provider bears NO responsibility for content or misuse of these
-programs or any derivatives thereof. By using these programs you accept the fact
-that any damage (dataloss, system crash, system compromise, etc.) caused by the
-use of these programs is not Rafa-dot-el's responsibility.
+This tool is intended solely for educational and authorized security testing purposes. Users are solely responsible for ensuring compliance with all applicable laws, regulations, and terms of service. Unauthorized access to computer systems, networks, or data is strictly prohibited and may violate local, state, federal, or international laws. The author disclaims all responsibility for any illegal, unauthorized, or improper use of this software.
+
+By using this software, you acknowledge that you have read this disclaimer, understand its contents, and agree to be bound by its terms. You further acknowledge that you use this software at your own risk and that you are solely responsible for any consequences resulting from its use.
