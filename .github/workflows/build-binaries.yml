@@ -1,0 +1,164 @@
+name: Build Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin, freebsd, openbsd, netbsd]
+        goarch: [amd64, arm64]
+        exclude:
+          # Exclude combinations that don't make sense or aren't supported
+          - goos: windows
+            goarch: arm64
+          - goos: freebsd
+            goarch: arm64
+          - goos: openbsd
+            goarch: arm64
+          - goos: netbsd
+            goarch: arm64
+        include:
+          # Add 386 architecture for selected platforms
+          - goos: linux
+            goarch: 386
+          - goos: windows
+            goarch: 386
+          - goos: freebsd
+            goarch: 386
+          # Add ARM variants
+          - goos: linux
+            goarch: arm
+            goarm: 6
+          - goos: linux
+            goarch: arm
+            goarm: 7
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Get dependencies
+      run: go mod download
+
+    - name: Set binary name
+      id: binary_name
+      run: |
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          echo "name=openai-api-key-tester.exe" >> $GITHUB_OUTPUT
+        else
+          echo "name=openai-api-key-tester" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set archive name
+      id: archive_name
+      run: |
+        if [ -n "${{ matrix.goarm }}" ]; then
+          echo "name=openai-api-key-tester-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}v${{ matrix.goarm }}" >> $GITHUB_OUTPUT
+        else
+          echo "name=openai-api-key-tester-${{ github.ref_name }}-${{ matrix.goos }}-${{ matrix.goarch }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Build binary
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        GOARM: ${{ matrix.goarm }}
+      run: |
+        CGO_ENABLED=0 go build -a -installsuffix cgo -ldflags="-w -s" -o ${{ steps.binary_name.outputs.name }} main.go
+
+    - name: Create archive
+      run: |
+        if [ "${{ matrix.goos }}" = "windows" ]; then
+          zip ${{ steps.archive_name.outputs.name }}.zip ${{ steps.binary_name.outputs.name }}
+        else
+          tar -czf ${{ steps.archive_name.outputs.name }}.tar.gz ${{ steps.binary_name.outputs.name }}
+        fi
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.archive_name.outputs.name }}
+        path: |
+          ${{ steps.archive_name.outputs.name }}.tar.gz
+          ${{ steps.archive_name.outputs.name }}.zip
+        retention-days: 30
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+
+    - name: Display structure of downloaded files
+      run: ls -la artifacts/
+
+    - name: Prepare release assets
+      run: |
+        mkdir -p release-assets
+        find artifacts/ -name "*.tar.gz" -exec cp {} release-assets/ \;
+        find artifacts/ -name "*.zip" -exec cp {} release-assets/ \;
+        ls -la release-assets/
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: "Release ${{ github.ref_name }}"
+        body: |
+          ## OpenAI API Key Tester ${{ github.ref_name }}
+
+          A command-line utility that validates OpenAI API keys by making requests to the OpenAI API.
+
+          ### 🐳 Docker Images
+
+          ```bash
+          # Latest release
+          docker run --rm -i rafadotel/openai-api-key-tester:${{ github.ref_name }}
+
+          # Always latest
+          docker run --rm -i rafadotel/openai-api-key-tester:latest
+          ```
+
+          ### 📦 Binary Downloads
+
+          Download the appropriate binary for your platform below. All binaries are statically compiled and require no dependencies.
+
+          ### 🚀 Usage
+
+          ```bash
+          # Test single key
+          echo "sk-your-key-here" | ./openai-api-key-tester
+
+          # Test multiple keys from file
+          cat keys.txt | ./openai-api-key-tester
+          ```
+
+          ### ⚠️ Disclaimer
+
+          This tool is intended solely for educational and authorized security testing purposes. Users are responsible for compliance with all applicable laws and regulations.
+
+        files: release-assets/*
+        draft: false
+        prerelease: false
